@@ -1,0 +1,57 @@
+package com.controller;
+
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import com.model.User;
+import com.service.UserService;
+
+// 登录控制器：接收登录请求，调用业务逻辑
+@WebServlet("/LoginServlet")
+public class LoginServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    // 处理POST请求（表单提交用POST，避免参数暴露在URL中）
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // 1. 设置编码（防止中文乱码）
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
+
+        // 2. 接收前端表单参数（name属性对应login.jsp的输入框）
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        // 3. 调用Service层业务逻辑
+        UserService service = new UserService();
+        User loginUser = service.login(username, password);
+
+        // 4. 处理登录结果
+        if (loginUser != null) {
+            // 登录成功：创建Session，存储用户信息，跳转到成功页
+            HttpSession session = request.getSession();
+            session.setAttribute("loginUser", loginUser); // 存储登录用户到Session
+            response.sendRedirect("/UserLoginSystem/success.jsp"); // 重定向（避免刷新重复提交）
+        } else {
+            // 登录失败：判断是用户名不存在还是密码错误
+            boolean isExist = service.checkUsernameExists(username);
+            if (!isExist) {
+                request.setAttribute("msg", "用户名不存在！");
+            } else {
+                request.setAttribute("msg", "密码错误！");
+            }
+            // 转发回登录页（保留提示信息）
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
+        }
+    }
+
+    // 处理GET请求（若用户用GET访问，也转发到POST处理）
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doPost(request, response);
+    }
+}

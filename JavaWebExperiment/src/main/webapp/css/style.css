@@ -1,0 +1,153 @@
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* 容器样式：居中显示 */
+.container {
+    width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* 表单项目样式 */
+.form-item {
+    margin-bottom: 20px;
+}
+
+.form-item label {
+    display: inline-block;
+    width: 80px;
+    text-align: right;
+    margin-right: 10px;
+    color: #666;
+}
+
+.form-item input {
+    width: 250px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-item input:disabled {
+    background-color: #f9f9f9;
+    cursor: not-allowed;
+}
+
+.form-item .tip {
+    display: block;
+    margin-left: 95px;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #999;
+}
+
+/* 按钮样式 */
+.form-btn {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.form-btn button {
+    padding: 10px 30px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-right: 20px;
+}
+
+.form-btn button:hover {
+    background-color: #45a049;
+}
+
+.form-btn a {
+    color: #2196F3;
+    text-decoration: none;
+}
+
+.form-btn a:hover {
+    text-decoration: underline;
+}
+
+/* 提示信息样式 */
+.msg {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.msg.error {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+.msg.success {
+    background-color: #e8f5e9;
+    color: #388e3c;
+}
+
+/* 用户信息样式 */
+.user-info {
+    text-align: right;
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.user-detail {
+    margin: 30px 0;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.user-detail p {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 16px;
+}
+
+/* 功能按钮样式 */
+.func-btn {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.func-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 0 10px;
+    background-color: #2196F3;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.func-btn a:hover {
+    background-color: #1976D2;
+}

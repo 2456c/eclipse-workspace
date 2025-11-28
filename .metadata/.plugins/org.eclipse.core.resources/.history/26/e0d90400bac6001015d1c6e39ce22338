@@ -1,0 +1,55 @@
+package com.filter;
+
+import java.io.IOException;
+import jakarta.servlet.Filter;  // 替换 javax → jakarta
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;  // 替换 javax → jakarta
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import com.model.User;
+
+@WebFilter("/*")
+public class LoginFilter implements Filter {
+
+    @Override
+    public void init(FilterConfig fConfig) throws ServletException {}
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse resp = (HttpServletResponse) response;
+
+        String url = req.getRequestURI();
+        boolean isExclude = url.contains("login.jsp") 
+                || url.contains("register.jsp") 
+                || url.contains("LoginServlet") 
+                || url.contains("RegisterServlet") 
+                || url.contains("css/") 
+                || url.contains("js/");
+
+        if (isExclude) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        HttpSession session = req.getSession();
+        User loginUser = (User) session.getAttribute("loginUser");
+
+        if (loginUser == null) {
+            req.setAttribute("msg", "非法访问，请先登录！");
+            req.getRequestDispatcher("/login.jsp").forward(req, resp);
+            return;
+        }
+
+        chain.doFilter(request, response);
+    }
+
+    @Override
+    public void destroy() {}
+}

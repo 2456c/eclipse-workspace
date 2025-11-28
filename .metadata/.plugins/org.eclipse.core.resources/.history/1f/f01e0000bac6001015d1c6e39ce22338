@@ -1,0 +1,52 @@
+package com.controller;
+
+import java.io.IOException;
+import jakarta.servlet.ServletException;  // 替换 javax → jakarta
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import com.model.User;
+import com.service.UserService;
+
+@WebServlet("/RegisterServlet")
+public class RegisterServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
+
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String name = request.getParameter("name");
+        String studentId = request.getParameter("studentId");
+
+        User user = new User(username, password, name, studentId);
+
+        UserService service = new UserService();
+        boolean isSuccess = service.register(user);
+
+        if (isSuccess) {
+            request.setAttribute("msg", "注册成功，请登录！");
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
+        } else {
+            boolean isExist = service.checkUsernameExists(username);
+            if (isExist) {
+                request.setAttribute("msg", "用户名已存在！");
+            } else {
+                request.setAttribute("msg", "密码格式错误（≥8字符，含2字母、2数字、1大小写）！");
+            }
+            request.setAttribute("username", username);
+            request.setAttribute("name", name);
+            request.setAttribute("studentId", studentId);
+            request.getRequestDispatcher("/register.jsp").forward(request, response);
+        }
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doPost(request, response);
+    }
+}

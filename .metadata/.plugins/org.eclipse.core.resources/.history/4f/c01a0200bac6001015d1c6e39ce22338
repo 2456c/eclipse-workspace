@@ -1,0 +1,46 @@
+package com.controller;
+
+import java.io.IOException;
+import jakarta.servlet.ServletException;  // 替换 javax → jakarta
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import com.model.User;
+import com.service.UserService;
+
+@WebServlet("/UpdateUsernameServlet")
+public class UpdateUsernameServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
+
+        HttpSession session = request.getSession();
+        User loginUser = (User) session.getAttribute("loginUser");
+        String oldUsername = loginUser.getUsername();
+
+        String newUsername = request.getParameter("newUsername");
+
+        UserService service = new UserService();
+        boolean isSuccess = service.updateUsername(oldUsername, newUsername);
+
+        if (isSuccess) {
+            loginUser.setUsername(newUsername);
+            session.setAttribute("loginUser", loginUser);
+            request.setAttribute("msg", "用户名修改成功！");
+            request.getRequestDispatcher("/success.jsp").forward(request, response);
+        } else {
+            request.setAttribute("msg", "新用户名已存在或格式错误！");
+            request.getRequestDispatcher("/updateUsername.jsp").forward(request, response);
+        }
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doPost(request, response);
+    }
+}
