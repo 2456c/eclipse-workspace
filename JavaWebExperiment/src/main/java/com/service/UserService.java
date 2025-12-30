@@ -1,89 +1,104 @@
 package com.service;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.dao.UserDao;
 import com.model.User;
 
-// 业务逻辑层：封装注册、登录、修改等核心功能
+// 用户业务逻辑层（处理验证、业务规则，不直接操作数据库）
 public class UserService {
-    // 模拟数据库：存储所有用户（内存存储，重启项目后数据丢失）
-    private static List<User> userList = new ArrayList<>();
+    private UserDao userDao = new UserDao();
 
-    // 注册业务：返回true=注册成功，false=失败（用户名已存在/密码格式错误）
-    public boolean register(User user) {
-        if (checkUsernameExists(user.getUsername())) {
-            return false; // 用户名已存在
+    // 注册验证+新增
+    public String register(User user) {
+        // 1. 验证用户名格式
+        if (!validateUserPassFormat(user.getUsername())) {
+            return "用户名格式错误！需至少8位，含2个字母、2个数字、1个大写、1个小写";
         }
-        if (!validatePasswordFormat(user.getPassword())) {
-            return false; // 密码格式错误
+        // 2. 验证密码格式
+        if (!validateUserPassFormat(user.getPassword())) {
+            return "密码格式错误！需至少8位，含2个字母、2个数字、1个大写、1个小写";
         }
-        userList.add(user);
-        return true;
+        // 3. 验证姓名/学号非空
+        if (user.getName() == null || user.getName().trim().isEmpty()) {
+            return "姓名不能为空！";
+        }
+        if (user.getStudentId() == null || user.getStudentId().trim().isEmpty()) {
+            return "学号不能为空！";
+        }
+        // 4. 执行注册
+        boolean success = userDao.insert(user);
+        return success ? "注册成功！" : "用户名已存在！";
     }
 
-    // 登录业务：返回User=登录成功，null=失败（用户名不存在/密码错误）
-    public User login(String username, String password) {
-        for (User user : userList) {
-            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                return user;
-            }
+    // 登录验证
+    public String login(String username, String password) {
+        User user = userDao.findByUsername(username);
+        if (user == null) {
+            return "用户名不存在！";
         }
-        return null;
+        if (!user.getPassword().equals(password)) {
+            return "密码错误！";
+        }
+        if (user.getStatus() == 0) {
+            return "账号已被禁用（离职），请联系管理员！";
+        }
+        return "success"; // 登录成功
     }
 
-    // 修改用户名业务：返回true=成功，false=失败（新用户名已存在/格式错误）
-    public boolean updateUsername(String oldUsername, String newUsername) {
-        if (checkUsernameExists(newUsername)) {
-            return false;
+    // 修改用户名
+    public String updateUsername(String oldUsername, String newUsername) {
+        // 验证新用户名格式
+        if (!validateUserPassFormat(newUsername)) {
+            return "新用户名格式错误！需至少8位，含2个字母、2个数字、1个大写、1个小写";
         }
-        if (!validatePasswordFormat(newUsername)) {
-            return false;
-        }
-        for (User user : userList) {
-            if (user.getUsername().equals(oldUsername)) {
-                user.setUsername(newUsername);
-                return true;
-            }
-        }
-        return false;
+        // 执行修改
+        boolean success = userDao.updateUsername(oldUsername, newUsername);
+        return success ? "用户名修改成功！" : "新用户名已存在！";
     }
 
-    // 修改密码业务：返回true=成功，false=失败（旧密码错误/新密码格式错误）
-    public boolean updatePassword(String username, String oldPwd, String newPwd) {
-        User user = getuserByUsername(username);
+    // 修改密码
+    public String updatePassword(String username, String oldPwd, String newPwd) {
+        // 验证旧密码
+        User user = userDao.findByUsername(username);
         if (user == null || !user.getPassword().equals(oldPwd)) {
-            return false; // 旧密码错误
+            return "旧密码错误！";
         }
-        if (!validatePasswordFormat(newPwd)) {
-            return false; // 新密码格式错误
+        // 验证新密码格式
+        if (!validateUserPassFormat(newPwd)) {
+            return "新密码格式错误！需至少8位，含2个字母、2个数字、1个大写、1个小写";
         }
-        user.setPassword(newPwd);
-        return true;
+        // 执行修改
+        boolean success = userDao.updatePassword(username, newPwd);
+        return success ? "密码修改成功！" : "密码修改失败！";
     }
 
-    // 辅助方法：检查用户名是否已存在
-    public boolean checkUsernameExists(String username) {
-        for (User user : userList) {
-            if (user.getUsername().equals(username)) {
-                return true;
-            }
-        }
-        return false;
+    // 获取用户信息（用于页面显示）
+    public User getUserByUsername(String username) {
+        return userDao.findByUsername(username);
     }
 
-    // 辅助方法：验证密码/用户名格式（≥8字符，含2字母、2数字、1大小写）
-    public boolean validatePasswordFormat(String str) {
-        String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d.*\\d)(?=.*[a-zA-Z].*[a-zA-Z]).{8,}$";
-        return str.matches(regex);
+    // 验证用户名/密码格式（核心规则）
+    public boolean validateUserPassFormat(String str) {
+        if (str == null || str.length() < 8) {
+            return false; // 长度不足8位
+        }
+        // 统计：小写字母、大写字母、数字的数量
+        int lower = 0, upper = 0, digit = 0;
+        for (char c : str.toCharArray()) {
+            if (Character.isLowerCase(c)) lower++;
+            else if (Character.isUpperCase(c)) upper++;
+            else if (Character.isDigit(c)) digit++;
+        }
+        // 规则：至少2个字母（大小写合计）、2个数字、1个大写、1个小写
+        return (lower + upper) >= 2 && digit >= 2 && upper >= 1 && lower >= 1;
     }
 
-    // 辅助方法：通过用户名获取用户对象
-    public User getuserByUsername(String username) {
-        for (User user : userList) {
-            if (user.getUsername().equals(username)) {
-                return user;
-            }
-        }
-        return null;
+    // 获取所有用户
+    public java.util.List<User> getAllUsers() {
+        return userDao.findAll();
+    }
+
+    // 更改用户状态
+    public boolean changeUserStatus(String username, int status) {
+        return userDao.updateStatus(username, status);
     }
 }
